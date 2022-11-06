@@ -307,26 +307,6 @@ function App() {
 
   const [controlModeInfo, setControlModeInfo] = React.useState({});
 
-  useEffect(() => {
-    const parsedValue = ("instrument_control_1|Grandmother|Deepmind|Omni 1|Gtr vox")?.split("|").reduce((obj, value, i) => {
-      switch (i) {
-        case 0:
-          obj.name = value
-        case 1:
-          obj.column1.channel = value
-        case 2:
-          obj.column2.channel = value
-        case 3:
-          obj.column3.channel = value
-        case 4:
-          obj.column4.channel = value
-      }
-      return obj
-    }, { name: "", column1: { channel: "" }, column2: { channel: "" }, column3: { channel: "" }, column4: { channel: "" } })
-    console.log(parsedValue)
-    setControlModeInfo(parsedValue);
-  }, [])
-
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -397,7 +377,7 @@ function App() {
         setLastAction(value);
       }
       if (type === "control_mode") {
-        const parsedValue = ("instrument_control_1|Grandmother|Deepmind|Omni 1|Gtr vox")?.split("|").reduce((obj, value, i) => {
+        const parsedValue = (value || "")?.split("|").reduce((obj, value, i) => {
           switch (i) {
             case 0:
               obj.name = value
@@ -409,9 +389,9 @@ function App() {
               obj.column3.channel = value
             case 4:
               obj.column4.channel = value
+            return obj
           }
-        }, {})
-        console.log(parsedValue)
+        }, { name: "", column1: {}, column2: {}, column3: {}, column4: {} })
         setControlModeInfo(parsedValue);
       }
     };
