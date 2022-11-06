@@ -8,7 +8,7 @@ const client = new W3CWebSocket("ws://localhost:8000");
 
 const fadersInitialState = {
   FADER_1: {
-    channel: "1/2",
+    channel: "1",
     index: "1",
     track_name: "None",
     track_color: "",
@@ -16,8 +16,8 @@ const fadersInitialState = {
     int: "",
     parameter_name: "",
   },
-  FADER_3: {
-    channel: "3/4",
+  FADER_2: {
+    channel: "2",
     index: "2",
     track_name: "None",
     track_color: "",
@@ -25,8 +25,8 @@ const fadersInitialState = {
     int: "",
     parameter_name: "",
   },
-  FADER_5: {
-    channel: "5/6",
+  FADER_3: {
+    channel: "3",
     index: "3",
     track_name: "None",
     track_color: "",
@@ -34,8 +34,8 @@ const fadersInitialState = {
     int: "",
     parameter_name: "",
   },
-  FADER_7: {
-    channel: "7/8",
+  FADER_4: {
+    channel: "4",
     index: "4",
     track_name: "None",
     track_color: "",
@@ -43,8 +43,8 @@ const fadersInitialState = {
     int: "",
     parameter_name: "",
   },
-  FADER_9: {
-    channel: "9/10",
+  FADER_5: {
+    channel: "5",
     index: "5",
     track_name: "None",
     track_color: "",
@@ -52,8 +52,8 @@ const fadersInitialState = {
     int: "",
     parameter_name: "",
   },
-  FADER_11: {
-    channel: "11/12",
+  FADER_6: {
+    channel: "6",
     index: "6",
     track_name: "None",
     track_color: "",
@@ -61,9 +61,63 @@ const fadersInitialState = {
     int: "",
     parameter_name: "",
   },
-  FADER_13: {
-    channel: "13/14",
+  FADER_7: {
+    channel: "7",
     index: "7",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
+  FADER_8: {
+    channel: "8",
+    index: "8",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
+  FADER_9: {
+    channel: "9",
+    index: "9",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
+  FADER_10: {
+    channel: "10",
+    index: "10",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
+  FADER_11: {
+    channel: "11",
+    index: "11",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
+  FADER_12: {
+    channel: "12",
+    index: "12",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
+  FADER_13: {
+    channel: "13",
+    index: "13",
     track_name: "None",
     track_color: "",
     value: "",
@@ -71,9 +125,27 @@ const fadersInitialState = {
     parameter_name: "",
     track_arm: 1,
   },
+  FADER_14: {
+    channel: "14",
+    index: "14",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
   FADER_15: {
-    channel: "15/16",
-    index: "8",
+    channel: "15",
+    index: "15",
+    track_name: "None",
+    track_color: "",
+    value: "",
+    int: "",
+    parameter_name: "",
+  },
+  FADER_16: {
+    channel: "16",
+    index: "16",
     track_name: "None",
     track_color: "",
     value: "",
@@ -233,6 +305,29 @@ function App() {
 
   const [lastAction, setLastAction] = React.useState("---");
 
+  const [controlModeInfo, setControlModeInfo] = React.useState({});
+
+  useEffect(() => {
+    const parsedValue = ("instrument_control_1|Grandmother|Deepmind|Omni 1|Gtr vox")?.split("|").reduce((obj, value, i) => {
+      switch (i) {
+        case 0:
+          obj.name = value
+        case 1:
+          obj.column1.channel = value
+        case 2:
+          obj.column2.channel = value
+        case 3:
+          obj.column3.channel = value
+        case 4:
+          obj.column4.channel = value
+      }
+      return obj
+    }, { name: "", column1: { channel: "" }, column2: { channel: "" }, column3: { channel: "" }, column4: { channel: "" } })
+    console.log(parsedValue)
+    setControlModeInfo(parsedValue);
+  }, [])
+
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       setStatusMessage("---");
@@ -266,12 +361,12 @@ function App() {
       }
 
       // MUTE
-      if (type === "value" &&  control?.includes("lp_track_mute_")) {
+      if (type === "value" && control?.includes("lp_track_mute_")) {
         mutedTracksByFader["FADER_" + control?.split("lp_track_mute_")[1]] = value === "True" ? true : false;
       }
 
       // MONO UTILITY
-      if (type === "value" &&  control?.includes("lp_track_mono_util_")) {
+      if (type === "value" && control?.includes("lp_track_mono_util_")) {
         monoTracksByFader["FADER_" + control?.split("lp_track_mono_util_")[1]] = value === "On" ? true : false;
       }
 
@@ -301,6 +396,24 @@ function App() {
       if (type === "action") {
         setLastAction(value);
       }
+      if (type === "control_mode") {
+        const parsedValue = ("instrument_control_1|Grandmother|Deepmind|Omni 1|Gtr vox")?.split("|").reduce((obj, value, i) => {
+          switch (i) {
+            case 0:
+              obj.name = value
+            case 1:
+              obj.column1.channel = value
+            case 2:
+              obj.column2.channel = value
+            case 3:
+              obj.column3.channel = value
+            case 4:
+              obj.column4.channel = value
+          }
+        }, {})
+        console.log(parsedValue)
+        setControlModeInfo(parsedValue);
+      }
     };
   }, []);
 
@@ -316,6 +429,11 @@ function App() {
 
   const knobsList = Object.entries(knobs);
 
+  const colorsByName = Object.entries(faders).reduce(
+    (acc, [control, { track_name, track_color }]) => { 
+      return { ...acc, [track_name]: toColor(track_color) }
+    }, {})
+
   return (
     <Container>
       <StatusContainer>
@@ -326,7 +444,7 @@ function App() {
         ([control, { channel, track_name, track_color, index, int, value }]) => {
           const isAssigned = track_name !== "None";
           const trackColor = toColor(track_color);
-          const isMidi = channel.startsWith("MIDI");
+          const isMidi = true //channel.startsWith("MIDI");
           const isArmed = armedTracksByFader[control];
           const isSoloed = soloTracksByFader[control];
           const isMuted = mutedTracksByFader[control];
@@ -337,7 +455,7 @@ function App() {
                 {track_name?.split("[->")[0]}
               </TrackName>
               <Channel isMidi={isMidi} isArmed={isArmed} isSoloed={isSoloed} isMuted={isMuted} isMono={isMono}>
-                <div className="track-id">{index}</div>                
+                <div className="track-id">{index}</div>
                 <div className="mixer-info">
                   <span>{channel?.split("/")[0]}</span>
                   <span>{channel?.split("/")[1]}</span>
@@ -369,13 +487,85 @@ function App() {
           }
         )}
       </KnobsContainer>
+      <ControlModeInfo>
+        <div>{controlModeInfo.name}</div>
+        <Col color={colorsByName[controlModeInfo.column1?.channel]}><span>{controlModeInfo.column1?.channel}</span></Col>
+        <Col color={colorsByName[controlModeInfo.column2?.channel]}><span>{controlModeInfo.column2?.channel}</span></Col>
+        <Col color={colorsByName[controlModeInfo.column3?.channel]}><span>{controlModeInfo.column3?.channel}</span></Col>
+        <Col color={colorsByName[controlModeInfo.column4?.channel]}><span>{controlModeInfo.column4?.channel}</span></Col>
+      </ControlModeInfo>
     </Container>
   );
 }
 
 export default App;
 
-const viewportHeight =  100; //33.8;
+const viewportHeight = 100; //33.8;
+
+const ControlModeInfo = styled.div`
+  width: 304px;
+  height: 90%;
+  margin-top: .5em;
+  padding-bottom: 0;
+  box-sizing: border-box;
+  background-color: #696969;
+  color: black;
+  white-space: pre;
+  font-family: "Courier New", Courier, monospace;
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-shadow: 2px 2px 2px rgba(250, 250, 250, .5);
+  display: flex;
+  flex-direction: row;
+  position: relative;
+
+  div {
+    width: 25%;
+  }
+
+  div:nth-child(1) {
+    color: white;
+    font-weight: bold;
+    text-shadow: none;
+    font-size: 18px;
+    margin-top: -10px;
+    position: absolute;
+    top: 40%;
+    background-color: black;
+
+    width: 100%;
+    text-align: center;
+    z-index: 2;
+    opacity: .8;
+  }
+`
+
+const Col = styled.div`
+   background-color: ${p => p.color || "grey"};
+   border-right: 1px solid rgb(200, 200, 200);
+   text-orientation: sideways;
+   position: relative;
+   display: flex;
+   flex-direction: column;
+   justify-content: flex-start;
+   align-items: baseline;
+   > span {
+    transform: rotate(90deg);
+    display: block;
+    width: fit-content;
+    background: black;
+    color: white;
+    font-weight: 400;
+    letter-spacing: 2px;
+    transform-origin: 0 200%;
+    margin-top: -30px;
+    /* position: absolute;
+    top: 20%;
+    left: -10%; */
+   }
+`
 
 const StatusContainer = styled.div`
   width: 304px;
@@ -432,7 +622,7 @@ const Strip = styled.div`
   height: ${(p) => viewportHeight}vh;
   flex-direction: column;
   width: ${(p) => (p.isMidi ? "110px" : "218px")};
-  background-color: ${p => p.isMuted ? "#303664" : "black" };
+  background-color: ${p => p.isMuted ? "#303664" : "black"};
   border: 1px solid grey;
   text-align: center;
   position: relative;
