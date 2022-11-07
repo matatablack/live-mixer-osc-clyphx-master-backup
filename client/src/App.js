@@ -1,8 +1,8 @@
 import React, { Component, useEffect } from "react";
 import { w3cwebsocket as W3CWebSocket } from "websocket";
 import styled from "styled-components";
-import colorutil from "color-util";
 import "./App.css";
+import { lighten, darken } from 'polished'
 
 const client = new W3CWebSocket("ws://localhost:8000");
 
@@ -389,7 +389,7 @@ function App() {
               obj.column3.channel = value
             case 4:
               obj.column4.channel = value
-            return obj
+              return obj
           }
         }, { name: "", column1: {}, column2: {}, column3: {}, column4: {} })
         setControlModeInfo(parsedValue);
@@ -410,44 +410,49 @@ function App() {
   const knobsList = Object.entries(knobs);
 
   const colorsByName = Object.entries(faders).reduce(
-    (acc, [control, { track_name, track_color }]) => { 
+    (acc, [control, { track_name, track_color }]) => {
       return { ...acc, [track_name]: toColor(track_color) }
     }, {})
 
   return (
     <Container>
-      <StatusContainer>
-        <StatusMessage>{statusMessage}</StatusMessage>
-        <LastAction>{lastAction}</LastAction>
-      </StatusContainer>
-      {Object.entries(faders).map(
-        ([control, { channel, track_name, track_color, index, int, value }]) => {
-          const isAssigned = track_name !== "None";
-          const trackColor = toColor(track_color);
-          const isMidi = true //channel.startsWith("MIDI");
-          const isArmed = armedTracksByFader[control];
-          const isSoloed = soloTracksByFader[control];
-          const isMuted = mutedTracksByFader[control];
-          const isMono = monoTracksByFader[control];
-          return (
-            <Strip key={channel} isMidi={isMidi} volume={int} isMuted={isMuted}>
-              <TrackName assigned={isAssigned} isMidi={isMidi} bg={trackColor}>
-                {track_name?.split("[->")[0]}
-              </TrackName>
-              <Channel isMidi={isMidi} isArmed={isArmed} isSoloed={isSoloed} isMuted={isMuted} isMono={isMono}>
-                <div className="track-id">{index}</div>
-                <div className="mixer-info">
-                  <span>{channel?.split("/")[0]}</span>
-                  <span>{channel?.split("/")[1]}</span>
-                </div>
-              </Channel>
-              <VolumeValue isMidi={isMidi}>
-                {value === "None" ? "" : value.includes('inf') ? '-inf' : parseFloat(value).toFixed(1)}
-              </VolumeValue>
-            </Strip>
-          );
-        }
-      )}
+      <ControlModeInfo>
+        <div>{controlModeInfo.name}</div>
+        <Col color={colorsByName[controlModeInfo.column1?.channel]}><span>{controlModeInfo.column1?.channel}</span></Col>
+        <Col color={colorsByName[controlModeInfo.column2?.channel]}><span>{controlModeInfo.column2?.channel}</span></Col>
+        <Col color={colorsByName[controlModeInfo.column3?.channel]}><span>{controlModeInfo.column3?.channel}</span></Col>
+        <Col color={colorsByName[controlModeInfo.column4?.channel]}><span>{controlModeInfo.column4?.channel}</span></Col>
+      </ControlModeInfo>
+      <ChannelsContainer>
+        {Object.entries(faders).map(
+          ([control, { channel, track_name, track_color, index, int, value }], i) => {
+            const isAssigned = track_name !== "None";
+            const trackColor = toColor(track_color);
+            const isMidi = true //channel.startsWith("MIDI");
+            const isArmed = armedTracksByFader[control];
+            const isSoloed = soloTracksByFader[control];
+            const isMuted = mutedTracksByFader[control];
+            const isMono = monoTracksByFader[control];
+            return (
+              <Strip key={channel} isMidi={isMidi} volume={int} isMuted={isMuted} bg={trackColor} rightGap={i === 15}>
+                <TrackName assigned={isAssigned} isMidi={isMidi} bg={trackColor}>
+                  {track_name?.split("[->")[0]}
+                </TrackName>
+                <Channel isMidi={isMidi} isArmed={isArmed} isSoloed={isSoloed} isMuted={isMuted} isMono={isMono}>
+                  <div className="track-id">{index}</div>
+                  {/* <div className="mixer-info">
+                    <span>{channel?.split("/")[0]}</span>
+                    <span>{channel?.split("/")[1]}</span>
+                  </div> */}
+                </Channel>
+                <VolumeValue isMidi={isMidi}>
+                  {value === "None" ? "" : value.includes('inf') ? '-inf' : parseFloat(value).toFixed(1)}
+                </VolumeValue>
+              </Strip>
+            );
+          }
+        )}
+        </ChannelsContainer>
       <KnobsContainer>
         {knobsList.map(
           (
@@ -467,13 +472,11 @@ function App() {
           }
         )}
       </KnobsContainer>
-      <ControlModeInfo>
-        <div>{controlModeInfo.name}</div>
-        <Col color={colorsByName[controlModeInfo.column1?.channel]}><span>{controlModeInfo.column1?.channel}</span></Col>
-        <Col color={colorsByName[controlModeInfo.column2?.channel]}><span>{controlModeInfo.column2?.channel}</span></Col>
-        <Col color={colorsByName[controlModeInfo.column3?.channel]}><span>{controlModeInfo.column3?.channel}</span></Col>
-        <Col color={colorsByName[controlModeInfo.column4?.channel]}><span>{controlModeInfo.column4?.channel}</span></Col>
-      </ControlModeInfo>
+      <StatusContainer>
+        <StatusMessage>{statusMessage}</StatusMessage>
+        <LastAction>{lastAction}</LastAction>
+      </StatusContainer>
+
     </Container>
   );
 }
@@ -482,10 +485,17 @@ export default App;
 
 const viewportHeight = 100; //33.8;
 
+const ChannelsContainer = styled.div`
+  min-width: 2270px;
+  max-width: 2270px;
+  display: flex;
+`
+
 const ControlModeInfo = styled.div`
-  width: 304px;
-  height: 90%;
-  margin-top: .5em;
+  opacity: .8;
+  max-width: 300px;
+  width: 100%;
+  overflow: hidden;
   padding-bottom: 0;
   box-sizing: border-box;
   background-color: #696969;
@@ -500,19 +510,20 @@ const ControlModeInfo = styled.div`
   display: flex;
   flex-direction: row;
   position: relative;
+  border-right: 3px solid darkslategrey;
 
   div {
     width: 25%;
   }
 
   div:nth-child(1) {
-    color: white;
+    color: #bdbdbd;
     font-weight: bold;
     text-shadow: none;
-    font-size: 18px;
+    font-size: 15px;
     margin-top: -10px;
     position: absolute;
-    top: 40%;
+    top: 80%;
     background-color: black;
 
     width: 100%;
@@ -535,7 +546,8 @@ const Col = styled.div`
     transform: rotate(90deg);
     display: block;
     width: fit-content;
-    background: black;
+    /* background: rgba(0, 0, 0, .5); */
+    text-shadow: 0 0 10px black;
     color: white;
     font-weight: 400;
     letter-spacing: 2px;
@@ -601,11 +613,13 @@ const Strip = styled.div`
   display: flex;
   height: ${(p) => viewportHeight}vh;
   flex-direction: column;
-  width: ${(p) => (p.isMidi ? "110px" : "218px")};
-  background-color: ${p => p.isMuted ? "#303664" : "black"};
+  max-width: ${(p) => (p.isMidi ? "110px" : "218px")};
+  width: 100%;
+  background-color: ${p => p.isMuted ? "#303664" : "#5b2d8033"};
   border: 1px solid grey;
   text-align: center;
   position: relative;
+  margin-right: ${p => p.rightGap ? "30px" : "0"};
   &:after {
     top: 100%;
     content: "";
@@ -613,20 +627,23 @@ const Strip = styled.div`
     width: ${(p) => (p.isMidi ? "110px" : "218px")};
     z-index: 2;
     height: ${(p) => (p.isMidi ? "calc(100% - 32px)" : "calc(100% - 32px)")};
-    background-color: ${p => p.isMuted ? "grey" : "#14abe5"}; 
+    background-color: ${p => p.isMuted ? "grey" : p.bg ? darken(0.25, p.bg) : "#14abe5"}; 
     transform: ${(p) => `translateY(${((p.volume * 100) / 127) * -1}%)`};
+    border-top: 5px solid ${p => lighten(0.1, p.bg)};
   }
 `;
 
 const TrackName = styled.div`
   background-color: ${(p) => (p.bg && p.assigned ? p.bg : "#696969")};
-  color: black;
+  color: white;
   font-size: ${(p) => (p.isMidi ? "14px" : "18px")};
   height: ${(p) => (p.isMidi ? "32px" : "32px")};
   line-height: 1.5em;
-  text-shadow: 0 0 12px #ffffff;
+  text-shadow: 0 0 10px black;
   white-space: pre;
   line-break: anywhere;
+  border-bottom: 1px solid grey;
+  box-shadow: 0px 8px 60px 2px #9d909094;
 `;
 
 const Channel = styled.div`
@@ -687,7 +704,7 @@ const VolumeValue = styled.div`
 `
 
 const KnobsContainer = styled.div`
-  width: 700px;
+  width: 680px;
   height: 100%;
   overflow: hidden;
   display: grid;
@@ -709,7 +726,7 @@ const KnobsContainer = styled.div`
     > span {
       color: #bbbbbb;
       text-shadow: 0 0 12px #000;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.5;
     }
   }
