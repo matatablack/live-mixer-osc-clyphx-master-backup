@@ -311,7 +311,7 @@ function App() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setStatusMessage("---");
-    }, 2000);
+    }, 10000);
     return () => {
       clearTimeout(timeout);
     };
@@ -636,10 +636,10 @@ const Strip = styled.div`
 const TrackName = styled.div`
   background-color: ${(p) => (p.bg && p.assigned ? p.bg : "#696969")};
   color: white;
-  font-size: ${(p) => (p.isMidi ? "14px" : "18px")};
+  font-size: ${(p) => (p.isMidi ? "16px" : "18px")};
   height: ${(p) => (p.isMidi ? "32px" : "32px")};
   line-height: 1.5em;
-  text-shadow: 0 0 10px black;
+  text-shadow: 0 0 8px black;
   white-space: pre;
   line-break: anywhere;
   border-bottom: 1px solid grey;
